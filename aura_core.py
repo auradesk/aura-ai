@@ -14,7 +14,8 @@ from typing import Dict
 from database import SessionLocal, SystemMetric
 from app.engine.phase121_engine import Phase121Engine
 from memory_engine import init_memory, store_memory, get_recent_memories
-from app.engine.phase41_interface_engine import router as phase41_router
+from app.engine.phase121_engine import router as phase121_router
+app.include_router(phase121_router)
 # ============================================================
 # APP INITIALIZATION
 # ============================================================
@@ -224,3 +225,6 @@ def memory():
         "memories": memories
     }
 app.include_router(phase41_router)
+@app.get("/health")
+def health():
+    return {"status": "healthy", "aura": "operational"}

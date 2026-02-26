@@ -1,71 +1,55 @@
 from fastapi import APIRouter
+from pydantic import BaseModel
+from typing import Optional
 from datetime import datetime
-from typing import Dict, Any, List
 
-router = APIRouter(
-    prefix="/metrics",
-    tags=["Phase121 Metrics Engine"]
-)
+router = APIRouter()
 
-class Phase121Engine:
-    """
-    Phase 121 — Metrics History & Intelligence Tracking Engine
-    """
+# ==========================
+# PHASE 121 INPUT MODEL
+# ==========================
 
-    def __init__(self):
-        self.metrics_history: List[Dict[str, Any]] = []
+class Phase121Input(BaseModel):
+    source: str
+    domain: Optional[str] = "general"
+    message: str
 
-    def record_metric(self, metric_name: str, value: float, metadata: Dict[str, Any] = None):
-        entry = {
-            "metric": metric_name,
-            "value": value,
-            "metadata": metadata or {},
-            "timestamp": datetime.utcnow().isoformat()
+
+# ==========================
+# SIMPLE SYSTEM STATUS CHECK
+# (Safe fallback if your system module changes)
+# ==========================
+
+SYSTEM_STATUS = "ACTIVE"
+
+def get_system_status():
+    return SYSTEM_STATUS
+
+
+# ==========================
+# PHASE 121 ASSESS ENDPOINT
+# (Upgraded to Phase 41 Logic)
+# ==========================
+
+@router.post("/phase121/assess")
+def phase121_assess(data: Phase121Input):
+
+    system_status = get_system_status()
+
+    # Block if system not active
+    if system_status != "ACTIVE":
+        return {
+            "status": "SYSTEM_NOT_ACTIVE",
+            "message": "Aura is currently not active",
+            "phase": 41
         }
 
-        self.metrics_history.append(entry)
-        return entry
+    # Simulated reasoning layer
+    processed_response = f"[Phase 41 Cognitive Layer] Source: {data.source} | Domain: {data.domain} | Message: {data.message}"
 
-    def get_metrics_history(self):
-        return self.metrics_history
-
-    def get_metrics_summary(self):
-        summary = {}
-
-        for entry in self.metrics_history:
-            name = entry["metric"]
-            value = entry["value"]
-
-            if name not in summary:
-                summary[name] = {
-                    "count": 0,
-                    "total": 0,
-                    "average": 0
-                }
-
-            summary[name]["count"] += 1
-            summary[name]["total"] += value
-            summary[name]["average"] = summary[name]["total"] / summary[name]["count"]
-
-        return summary
-
-
-# Global engine instance
-phase121_engine = Phase121Engine()
-
-
-# API ROUTES
-
-@router.get("/history")
-def get_metrics_history():
-    return phase121_engine.get_metrics_history()
-
-
-@router.get("/summary")
-def get_metrics_summary():
-    return phase121_engine.get_metrics_summary()
-
-
-@router.post("/record")
-def record_metric(metric_name: str, value: float):
-    return phase121_engine.record_metric(metric_name, value)
+    return {
+        "aura_response": processed_response,
+        "system_status": system_status,
+        "phase": 41,
+        "timestamp": datetime.utcnow().isoformat()
+    }
