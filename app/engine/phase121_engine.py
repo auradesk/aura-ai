@@ -6,7 +6,7 @@ from datetime import datetime
 router = APIRouter()
 
 # ==========================
-# PHASE 121 INPUT MODEL
+# REQUEST MODEL
 # ==========================
 
 class Phase121Input(BaseModel):
@@ -16,40 +16,36 @@ class Phase121Input(BaseModel):
 
 
 # ==========================
-# SIMPLE SYSTEM STATUS CHECK
-# (Safe fallback if your system module changes)
+# SYSTEM STATUS (Simple)
 # ==========================
 
 SYSTEM_STATUS = "ACTIVE"
 
-def get_system_status():
-    return SYSTEM_STATUS
-
 
 # ==========================
-# PHASE 121 ASSESS ENDPOINT
-# (Upgraded to Phase 41 Logic)
+# ASSESS ENDPOINT
 # ==========================
 
 @router.post("/phase121/assess")
-def phase121_assess(data: Phase121Input):
+async def phase121_assess(payload: Phase121Input):
 
-    system_status = get_system_status()
-
-    # Block if system not active
-    if system_status != "ACTIVE":
+    if SYSTEM_STATUS != "ACTIVE":
         return {
             "status": "SYSTEM_NOT_ACTIVE",
             "message": "Aura is currently not active",
             "phase": 41
         }
 
-    # Simulated reasoning layer
-    processed_response = f"[Phase 41 Cognitive Layer] Source: {data.source} | Domain: {data.domain} | Message: {data.message}"
+    response_text = (
+        f"[Phase 41 Cognitive Layer] "
+        f"Source: {payload.source} | "
+        f"Domain: {payload.domain} | "
+        f"Message: {payload.message}"
+    )
 
     return {
-        "aura_response": processed_response,
-        "system_status": system_status,
+        "aura_response": response_text,
+        "system_status": SYSTEM_STATUS,
         "phase": 41,
         "timestamp": datetime.utcnow().isoformat()
     }
