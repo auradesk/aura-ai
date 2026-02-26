@@ -13,6 +13,7 @@ import asyncio
 from typing import Dict
 from database import SessionLocal, SystemMetric
 from app.engine.phase121_engine import Phase121Engine
+from memory_engine import init_memory, store_memory, get_recent_memories
 # ============================================================
 # APP INITIALIZATION
 # ============================================================
@@ -22,6 +23,7 @@ app = FastAPI(
     description="Aura Professional Intelligence Core System",
     version="2.0.0"
 )
+init_memory()
 phase121_engine = Phase121Engine()
 # Enable CORS (required for dashboard connection)
 app.add_middleware(
@@ -197,3 +199,26 @@ def history():
     db.close()
 
     return data
+from fastapi import Request
+
+@app.post("/chat")
+async def chat(request: Request):
+
+    data = await request.json()
+    user_input = data.get("message", "")
+
+    aura_response = f"Aura received: {user_input}"
+
+    store_memory(user_input, aura_response)
+
+    return {
+        "response": aura_response
+    }
+@app.get("/memory")
+def memory():
+
+    memories = get_recent_memories()
+
+    return {
+        "memories": memories
+    }
