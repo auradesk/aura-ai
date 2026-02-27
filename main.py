@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-
+from app.platform.organization import router as platform_router
 
 # Import all phase engines here
 from app.engine.phase121_engine import router as phase121_router
@@ -29,7 +29,7 @@ app.add_middleware(
 
 # Register phase routers
 app.include_router(phase121_router)
-
+app.include_router(platform_router)
 # Future:
 # app.include_router(phase122_router)
 
