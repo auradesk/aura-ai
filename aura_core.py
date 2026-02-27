@@ -14,8 +14,13 @@ from typing import Dict
 from database import SessionLocal, SystemMetric
 from app.engine.phase121_engine import Phase121Engine
 from memory_engine import init_memory, store_memory, get_recent_memories
-from app.engine.phase121_engine import router as phase121_router
-app.include_router(phase121_router)
+# Phase121 Engine
+try:
+    from app.engine.phase121_engine import router as phase121_router
+    app.include_router(phase121_router)
+    print("Phase121 Engine Loaded")
+except Exception as e:
+    print("Phase121 Engine Failed:", e)
 # ============================================================
 # APP INITIALIZATION
 # ============================================================
