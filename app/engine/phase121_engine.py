@@ -1,21 +1,33 @@
 # ============================================================
-# AURA AI CORE — PHASE 121 ENGINE
-# Cognitive Assessment Engine
+# AURA AI CORE — PHASE 121 ENGINE WITH API ROUTER
 # ============================================================
 
 from datetime import datetime
 import uuid
 
+from fastapi import APIRouter
+from pydantic import BaseModel
+from typing import Dict, Any, List
+
+
+# ============================================================
+# REQUEST MODEL
+# ============================================================
+
+class AssessmentRequest(BaseModel):
+    input_data: Dict[str, Any]
+
+
+# ============================================================
+# ENGINE
+# ============================================================
 
 class Phase121Engine:
 
     def __init__(self):
-        self.history = []
+        self.history: List[Dict[str, Any]] = []
 
     def assess(self, input_data: dict):
-        """
-        Perform intelligent system assessment
-        """
 
         assessment_id = str(uuid.uuid4())
 
@@ -34,21 +46,17 @@ class Phase121Engine:
 
     def _determine_state(self, input_data):
 
-        if not input_data:
-            return "IDLE"
+        text = str(input_data).lower()
 
-        if "critical" in str(input_data).lower():
+        if "critical" in text:
             return "CRITICAL"
 
-        if "warning" in str(input_data).lower():
+        if "warning" in text:
             return "WARNING"
 
         return "STABLE"
 
     def _calculate_confidence(self, input_data):
-
-        if not input_data:
-            return 0.5
 
         size = len(str(input_data))
 
@@ -68,13 +76,46 @@ class Phase121Engine:
             return "Immediate intervention required"
 
         if state == "WARNING":
-            return "Monitor and review"
+            return "Monitor closely"
 
-        if state == "STABLE":
-            return "Continue normal operation"
-
-        return "No action required"
+        return "Continue normal operation"
 
     def get_history(self):
 
         return self.history
+
+
+# ============================================================
+# ENGINE INSTANCE
+# ============================================================
+
+engine = Phase121Engine()
+
+
+# ============================================================
+# API ROUTER
+# ============================================================
+
+router = APIRouter(
+    prefix="/phase121",
+    tags=["Phase121 Cognitive Engine"]
+)
+
+
+@router.post("/assess")
+def assess(request: AssessmentRequest):
+
+    result = engine.assess(request.input_data)
+
+    return {
+        "status": "success",
+        "result": result
+    }
+
+
+@router.get("/history")
+def history():
+
+    return {
+        "history": engine.get_history()
+    }
