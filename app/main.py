@@ -1,36 +1,46 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
-# Core system
+# database
 from app.database import Base, engine
 
-# Platform router
+# routers
 from app.platform_router import router as platform_router
-
-# Memory router
 from app.memory.memory_router import router as memory_router
 
 
-# Create database tables
+# Create tables automatically (VERY IMPORTANT)
 Base.metadata.create_all(bind=engine)
 
 
-# Create FastAPI app
 app = FastAPI(
     title="Aura AI Core",
-    version="2.0",
-    description="Aura AI Autonomous Intelligence Platform"
+    description="Autonomous Organizational Intelligence Platform",
+    version="124.0"
 )
 
 
-# Root endpoint
-@app.get("/")
-def root():
-    return {
-        "system": "Aura AI Core",
-        "status": "RUNNING"
-    }
+# Enable CORS (fixes fetch + browser issues)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 # Register routers
 app.include_router(platform_router)
 app.include_router(memory_router)
+
+
+@app.get("/")
+def root():
+    return {
+        "system": "Aura AI Core",
+        "status": "ACTIVE",
+        "phase": "124",
+        "memory": "ENABLED",
+        "platform": "ENABLED"
+    }
