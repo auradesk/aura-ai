@@ -1,51 +1,80 @@
-from fastapi import APIRouter
-from pydantic import BaseModel
-from typing import Optional
+# ============================================================
+# AURA AI CORE — PHASE 121 ENGINE
+# Cognitive Assessment Engine
+# ============================================================
+
 from datetime import datetime
-
-router = APIRouter()
-
-# ==========================
-# REQUEST MODEL
-# ==========================
-
-class Phase121Input(BaseModel):
-    source: str
-    domain: Optional[str] = "general"
-    message: str
+import uuid
 
 
-# ==========================
-# SYSTEM STATUS (Simple)
-# ==========================
+class Phase121Engine:
 
-SYSTEM_STATUS = "ACTIVE"
+    def __init__(self):
+        self.history = []
 
+    def assess(self, input_data: dict):
+        """
+        Perform intelligent system assessment
+        """
 
-# ==========================
-# ASSESS ENDPOINT
-# ==========================
+        assessment_id = str(uuid.uuid4())
 
-@router.post("/phase121/assess")
-async def phase121_assess(payload: Phase121Input):
-
-    if SYSTEM_STATUS != "ACTIVE":
-        return {
-            "status": "SYSTEM_NOT_ACTIVE",
-            "message": "Aura is currently not active",
-            "phase": 41
+        result = {
+            "assessment_id": assessment_id,
+            "timestamp": datetime.utcnow().isoformat(),
+            "input": input_data,
+            "cognitive_state": self._determine_state(input_data),
+            "confidence": self._calculate_confidence(input_data),
+            "recommendation": self._generate_recommendation(input_data)
         }
 
-    response_text = (
-        f"[Phase 41 Cognitive Layer] "
-        f"Source: {payload.source} | "
-        f"Domain: {payload.domain} | "
-        f"Message: {payload.message}"
-    )
+        self.history.append(result)
 
-    return {
-        "aura_response": response_text,
-        "system_status": SYSTEM_STATUS,
-        "phase": 41,
-        "timestamp": datetime.utcnow().isoformat()
-    }
+        return result
+
+    def _determine_state(self, input_data):
+
+        if not input_data:
+            return "IDLE"
+
+        if "critical" in str(input_data).lower():
+            return "CRITICAL"
+
+        if "warning" in str(input_data).lower():
+            return "WARNING"
+
+        return "STABLE"
+
+    def _calculate_confidence(self, input_data):
+
+        if not input_data:
+            return 0.5
+
+        size = len(str(input_data))
+
+        if size > 100:
+            return 0.95
+
+        if size > 50:
+            return 0.85
+
+        return 0.75
+
+    def _generate_recommendation(self, input_data):
+
+        state = self._determine_state(input_data)
+
+        if state == "CRITICAL":
+            return "Immediate intervention required"
+
+        if state == "WARNING":
+            return "Monitor and review"
+
+        if state == "STABLE":
+            return "Continue normal operation"
+
+        return "No action required"
+
+    def get_history(self):
+
+        return self.history
