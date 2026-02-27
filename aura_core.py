@@ -1,230 +1,105 @@
-# ============================================================
-# AURA AI CORE V2
-# Professional Live Intelligence Engine
-# ============================================================
-from database import SessionLocal, init_db, SystemMetric, IntelligenceScore
+# ============================================
+# PHASE 122 — ORGANIZATION PLATFORM LAYER
+# Aura becomes multi-tenant ecosystem
+# ============================================
 
-init_db()
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
+from typing import Dict, Optional
 from datetime import datetime
-import random
-import asyncio
-from typing import Dict
-from database import SessionLocal, SystemMetric
-from app.engine.phase121_engine import Phase121Engine
-from memory_engine import init_memory, store_memory, get_recent_memories
-from app.engine.phase121_engine import router as phase121_router
-app.include_router(phase121_router)
-# ============================================================
-# APP INITIALIZATION
-# ============================================================
+import uuid
 
-app = FastAPI(
-    title="Aura AI Core",
-    description="Aura Professional Intelligence Core System",
-    version="2.0.0"
-)
-init_memory()
-phase121_engine = Phase121Engine()
-# Enable CORS (required for dashboard connection)
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+# ============================================
+# Organization Model
+# ============================================
 
-# ============================================================
-# GLOBAL SYSTEM STATE
-# ============================================================
+class OrganizationCreate(BaseModel):
+    name: str
+    domain: str  # healthcare, business, education
+    admin_email: str
 
-aura_state: Dict = {
-    "system_status": "ACTIVE",
-    "core_version": "2.0.0",
-    "start_time": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-    "last_update": None,
 
-    "domains": {
-        "healthcare": 0,
-        "business": 0,
-        "education": 0
-    },
+class Organization(BaseModel):
+    org_id: str
+    name: str
+    domain: str
+    admin_email: str
+    created_at: str
+    status: str
 
-    "performance": {
-        "cpu_load": 0,
-        "memory_usage": 0,
-        "response_time_ms": 0
-    }
-}
 
-# ============================================================
-# LIVE SCORE GENERATOR
-# ============================================================
+# ============================================
+# Organization Registry
+# ============================================
 
-def generate_live_scores():
-    """Simulates real AI intelligence scoring"""
+ORGANIZATIONS: Dict[str, Organization] = {}
 
-    aura_state["domains"]["healthcare"] = random.randint(85, 98)
-    aura_state["domains"]["business"] = random.randint(80, 97)
-    aura_state["domains"]["education"] = random.randint(82, 99)
 
-    aura_state["performance"]["cpu_load"] = random.randint(10, 65)
-    aura_state["performance"]["memory_usage"] = random.randint(20, 70)
-    aura_state["performance"]["response_time_ms"] = random.randint(45, 180)
+# ============================================
+# Register Organization
+# ============================================
 
-    aura_state["last_update"] = datetime.now().strftime("%H:%M:%S")
+@app.post("/platform/organization/register")
+def register_organization(org: OrganizationCreate):
 
-# ============================================================
-# BACKGROUND LIVE UPDATE LOOP
-# ============================================================
+    org_id = f"ORG-{uuid.uuid4().hex[:8].upper()}"
 
-async def live_update_loop():
-    """Continuously updates Aura intelligence"""
-    while True:
-        generate_live_scores()
-        await asyncio.sleep(5)
+    new_org = Organization(
+        org_id=org_id,
+        name=org.name,
+        domain=org.domain,
+        admin_email=org.admin_email,
+        created_at=datetime.utcnow().isoformat(),
+        status="ACTIVE"
+    )
 
-# ============================================================
-# STARTUP EVENT
-# ============================================================
-
-@app.on_event("startup")
-async def startup_event():
-    print("Aura Core starting...")
-    asyncio.create_task(live_update_loop())
-    print("Aura Core ACTIVE")
-
-# ============================================================
-# ROOT ENDPOINT
-# ============================================================
-
-@app.get("/")
-async def root():
-    return {
-        "system": "Aura AI Core",
-        "status": aura_state["system_status"],
-        "version": aura_state["core_version"]
-    }
-
-# ============================================================
-# HEALTH CHECK ENDPOINT
-# ============================================================
-
-@app.get("/health")
-async def health():
-    return {
-        "status": "healthy",
-        "system_status": aura_state["system_status"],
-        "last_update": aura_state["last_update"]
-    }
-
-# ============================================================
-# MAIN CONTROL CENTER ENDPOINT
-# ============================================================
-
-@app.post("/phase121/assess")
-async def phase121_assess():
-    """Main endpoint used by Professional Control Center"""
-
-    generate_live_scores()
+    ORGANIZATIONS[org_id] = new_org
 
     return {
-        "status": aura_state["system_status"],
-        "core_version": aura_state["core_version"],
-        "domains": aura_state["domains"],
-        "performance": aura_state["performance"],
-        "last_update": aura_state["last_update"]
+        "status": "SUCCESS",
+        "message": "Organization registered on Aura platform",
+        "organization": new_org
     }
 
-# ============================================================
-# FULL SYSTEM STATUS ENDPOINT
-# ============================================================
 
-@app.get("/system/status")
-async def system_status():
-    return aura_state
+# ============================================
+# Get Organization
+# ============================================
 
-# ============================================================
-# DOMAIN SPECIFIC ENDPOINTS
-# ============================================================
+@app.get("/platform/organization/{org_id}")
+def get_organization(org_id: str):
 
-@app.get("/domain/healthcare")
-async def healthcare_status():
-    return {
-        "domain": "healthcare",
-        "score": aura_state["domains"]["healthcare"],
-        "last_update": aura_state["last_update"]
-    }
+    org = ORGANIZATIONS.get(org_id)
 
-@app.get("/domain/business")
-async def business_status():
-    return {
-        "domain": "business",
-        "score": aura_state["domains"]["business"],
-        "last_update": aura_state["last_update"]
-    }
+    if not org:
+        return {"error": "Organization not found"}
 
-@app.get("/domain/education")
-async def education_status():
-    return {
-        "domain": "education",
-        "score": aura_state["domains"]["education"],
-        "last_update": aura_state["last_update"]
-    }
+    return org
 
-# ============================================================
-# SYSTEM CONTROL ENDPOINTS
-# ============================================================
 
-@app.post("/system/activate")
-async def activate_system():
-    aura_state["system_status"] = "ACTIVE"
-    return {"status": "Aura Core ACTIVATED"}
+# ============================================
+# List Organizations
+# ============================================
 
-@app.post("/system/standby")
-async def standby_system():
-    aura_state["system_status"] = "STANDBY"
-    return {"status": "Aura Core in STANDBY"}
-
-@app.get("/metrics/history")
-def history():
-
-    db = SessionLocal()
-
-    data = db.query(SystemMetric)\
-        .order_by(SystemMetric.timestamp.desc())\
-        .limit(100)\
-        .all()
-
-    db.close()
-
-    return data
-from fastapi import Request
-
-@app.post("/chat")
-async def chat(request: Request):
-
-    data = await request.json()
-    user_input = data.get("message", "")
-
-    aura_response = f"Aura received: {user_input}"
-
-    store_memory(user_input, aura_response)
+@app.get("/platform/organizations")
+def list_organizations():
 
     return {
-        "response": aura_response
+        "total": len(ORGANIZATIONS),
+        "organizations": ORGANIZATIONS
     }
-@app.get("/memory")
-def memory():
 
-    memories = get_recent_memories()
+
+# ============================================
+# Platform Status
+# ============================================
+
+@app.get("/platform/status")
+def platform_status():
 
     return {
-        "memories": memories
+        "platform": "Aura AI Ecosystem",
+        "status": "ACTIVE",
+        "organizations": len(ORGANIZATIONS),
+        "phase": "122",
+        "level": "PLATFORM"
     }
-app.include_router(phase41_router)
-@app.get("/health")
-def health():
-    return {"status": "healthy", "aura": "operational"}
