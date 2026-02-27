@@ -25,11 +25,23 @@ except Exception as e:
 # APP INITIALIZATION
 # ============================================================
 
+from fastapi import FastAPI
+
 app = FastAPI(
     title="Aura AI Core",
-    description="Aura Professional Intelligence Core System",
-    version="2.0.0"
+    version="122.0"
 )
+
+# import phase121 router
+from app.engine.phase121_engine import router as phase121_router
+
+app.include_router(phase121_router)
+
+
+@app.get("/")
+def root():
+    return {"system": "Aura AI Core", "status": "ACTIVE"}
+
 init_memory()
 phase121_engine = Phase121Engine()
 # Enable CORS (required for dashboard connection)

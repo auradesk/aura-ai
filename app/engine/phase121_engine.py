@@ -1,46 +1,50 @@
-# ============================================
-# AURA AI — Phase 121 Engine
-# Platform Intelligence Core
-# ============================================
-
 from fastapi import APIRouter
+from pydantic import BaseModel
+from typing import Dict, Any
+from datetime import datetime
+import uuid
 
 router = APIRouter(
-    prefix="/engine/phase121",
+    prefix="/phase121",
     tags=["Phase121 Engine"]
 )
 
-# ============================================
-# STATUS
-# ============================================
+# Request model
+class AssessmentRequest(BaseModel):
+    domain: str
+    data: Dict[str, Any]
 
-@router.get("/status")
-def phase121_status():
+# Response model
+class AssessmentResponse(BaseModel):
+    assessment_id: str
+    domain: str
+    status: str
+    confidence: float
+    timestamp: str
+
+# In-memory storage
+ASSESSMENTS = {}
+
+@router.post("/assess", response_model=AssessmentResponse)
+async def assess_system(request: AssessmentRequest):
+
+    assessment_id = str(uuid.uuid4())
+
+    result = AssessmentResponse(
+        assessment_id=assessment_id,
+        domain=request.domain,
+        status="analyzed",
+        confidence=0.95,
+        timestamp=datetime.utcnow().isoformat()
+    )
+
+    ASSESSMENTS[assessment_id] = result
+
+    return result
+
+@router.get("/history")
+async def get_history():
     return {
-        "phase": 121,
-        "name": "Platform Intelligence Core",
-        "status": "operational"
-    }
-
-# ============================================
-# INTELLIGENCE TEST
-# ============================================
-
-@router.get("/intelligence/test")
-def intelligence_test():
-    return {
-        "engine": "phase121",
-        "intelligence": "active",
-        "decision_layer": "online"
-    }
-
-# ============================================
-# HEALTH CHECK
-# ============================================
-
-@router.get("/health")
-def health():
-    return {
-        "engine": "phase121",
-        "health": "healthy"
+        "total": len(ASSESSMENTS),
+        "records": ASSESSMENTS
     }
