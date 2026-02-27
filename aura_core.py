@@ -32,27 +32,26 @@ app = FastAPI(
     version="122.0"
 )
 
-# import phase121 router
+# Correct import
 from app.engine.phase121_engine import router as phase121_router
 
+# Register router
 app.include_router(phase121_router)
 
 
 @app.get("/")
 def root():
-    return {"system": "Aura AI Core", "status": "ACTIVE"}
+    return {
+        "system": "Aura AI Core",
+        "status": "ACTIVE"
+    }
 
-init_memory()
-phase121_engine = Phase121Engine()
-# Enable CORS (required for dashboard connection)
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
 
+@app.get("/health")
+def health():
+    return {
+        "status": "healthy"
+    }
 # ============================================================
 # GLOBAL SYSTEM STATE
 # ============================================================
