@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.platform.organization import router as platform_router
-
+from app.engine.platform_intelligence import platform_intelligence
 # Import all phase engines here
 from app.engine.phase121_engine import router as phase121_router
 
@@ -63,3 +63,31 @@ def system_status():
         "engine": "Phase 121 active",
         "deployment": "Render Cloud"
     }
+# ============================================================
+# Phase 123 — Activate Intelligence
+# ============================================================
+
+@app.post("/platform/intelligence/activate/{organization_id}")
+def activate_intelligence(organization_id: str):
+
+    return platform_intelligence.activate_intelligence(organization_id)
+
+
+# ============================================================
+# Get organization intelligence
+# ============================================================
+
+@app.get("/platform/intelligence/{organization_id}")
+def get_intelligence(organization_id: str):
+
+    return platform_intelligence.get_intelligence(organization_id)
+
+
+# ============================================================
+# Get all intelligence systems
+# ============================================================
+
+@app.get("/platform/intelligence")
+def get_all_intelligence():
+
+    return platform_intelligence.get_all_intelligence()
