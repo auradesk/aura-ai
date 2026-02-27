@@ -61,7 +61,7 @@ def consolidate_memory(request: dict):
         "consolidation": result
     }
 from fastapi import APIRouter
-from app.main import agi_engine
+from AURA.AURA_CORE_V2.main import agi_engine
 
 router = APIRouter()
 
