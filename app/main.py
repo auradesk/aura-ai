@@ -44,3 +44,8 @@ def root():
         "memory": "ENABLED",
         "platform": "ENABLED"
     }
+@app.on_event("startup")
+def recreate_db():
+    from database import Base, engine
+    Base.metadata.drop_all(bind=engine)
+    Base.metadata.create_all(bind=engine)
